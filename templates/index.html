@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>코로나 지역현황</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+    <style>
+        #chartBox {
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 600px;
+        }
+
+        div>h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="chartBox">
+
+        <h1>지역별 확진자 수</h1>
+        <form onchange="javascript : bar_gragh()" name="barGragh">
+            <select name="area">
+                <option value="seoul">서울</option>
+                <option value="busan ">부산</option>
+                <option value="daegu ">대구</option>
+                <option value="incheon ">인천</option>
+                <option value="gwangju ">광주</option>
+                <option value="daejeon ">대전</option>
+                <option value="ulsan ">울산</option>
+                <option value="sejong ">세종</option>
+                <option value="gyeonggi ">경기도</option>
+                <option value="gangwon ">강원도</option>
+                <option value="chungbuk ">충북</option>
+                <option value="chungnam ">충남</option>
+                <option value="jeolbuk ">전북</option>
+                <option value="jeolnam ">전남</option>
+                <option value="gyeongbuk ">경북</option>
+                <option value="gyeongnam ">경남</option>
+                <option value="jeju ">제주</option>
+                <option value="total">합계</option>
+            </select>
+            <select name="term">
+                <option value="30">30 일</option>
+                <option value="15">15 일</option>
+                <option value="7">7 일</option>
+            </select>
+        </form>
+        <canvas id="incDec_my" width="100" , height="100"></canvas>
+
+
+        <h1>전국 확진자수</h1>
+        <canvas id="incDec" width="100" , height="100"></canvas>
+
+
+    </div>
+
+    <script>
+        // 지역 표현 색깔
+        colorList = ["rgb(255, 99, 132)", "rgb(255, 162, 235)", "rgb(255, 205, 86)",
+            "rgb(200, 99, 132)", "rgb(200, 162, 235)", "rgb(200, 205, 86)",
+            "rgb(160, 99, 132)", "rgb(160, 162, 235)", "rgb(160, 205, 86)",
+            "rgb(130, 99, 132)", "rgb(130, 162, 235)", "rgb(130, 205, 86)",
+            "rgb(60, 99, 132)", "rgb(60, 162, 235)", "rgb(60, 205, 86)",
+            "rgb(0, 99, 132)", "rgb(0, 162, 235)", "rgb(0, 205, 86)",
+        ]
+
+
+        const gubun = ["서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종", "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주", "검역소"];
+        const inc_dec_total = [];   //합계
+        const inc_dec_seoul = [];   //서울
+        const inc_dec_busan = [];   //부산
+        const inc_dec_daegu = [];   //대구
+        const inc_dec_incheon = [];   //인천
+        const inc_dec_gwangju = [];   //광주
+        const inc_dec_daejeon = [];   //대전
+        const inc_dec_ulsan = [];   //울산
+        const inc_dec_sejong = [];   //세종
+        const inc_dec_gyeonggi = [];   //경기
+        const inc_dec_gangwon = [];   //강원
+        const inc_dec_chungbuk = [];   //충북
+        const inc_dec_chungnam = [];   //충남
+        const inc_dec_jeolbuk = [];   //전북
+        const inc_dec_jeolnam = [];   //전남
+        const inc_dec_gyeongbuk = [];   //경북
+        const inc_dec_gyeongnam = [];   //경남
+        const inc_dec_jeju = [];   //제주
+        const inc_dec_lazaretto = [];   //검역소
+        const date = [];
+        const unique_date = [];
+        const date_15 = [];
+        const date_7 = [];
+
+        //모든 데이터를  배열에 저장
+        {% for d in data %}
+        if ("{{d.gubun}}" == "합계") {
+            inc_dec_total.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "서울") {
+            inc_dec_seoul.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "부산") {
+            inc_dec_busan.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "대구") {
+            inc_dec_daegu.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "인천") {
+            inc_dec_incheon.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "광주") {
+            inc_dec_gwangju.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "대전") {
+            inc_dec_daejeon.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "울산") {
+            inc_dec_ulsan.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "세종") {
+            inc_dec_sejong.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "경기") {
+            inc_dec_gyeonggi.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "강원") {
+            inc_dec_gangwon.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "충북") {
+            inc_dec_chungbuk.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "충남") {
+            inc_dec_chungnam.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "전북") {
+            inc_dec_jeolbuk.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "전남") {
+            inc_dec_jeolnam.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "경북") {
+            inc_dec_gyeongbuk.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "경남") {
+            inc_dec_gyeongnam.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "제주") {
+            inc_dec_jeju.push("{{d.incDec}}")
+        }; if ("{{d.gubun}}" == "검역") {
+            inc_dec_lazaretto.push("{{d.incDec}}")
+        };
+        date.push("{{d.stdDay}}");
+        {% endfor %}
+
+        for (let i = 0; i < date.length; i++) {
+            if (unique_date.indexOf(date[i]) == -1) unique_date.push(date[i]);
+        }
+        for (let i = 16; i < 31; i++) {
+            date_15.push(unique_date[i]);
+        }
+        for (let i = 24; i < 31; i++) {
+
+            date_7.push(unique_date[i]);
+        }
+
+        //chart.js를 이용한 그래프 생성.
+        let ctx_incDec_my = document.getElementById('incDec_my').getContext('2d');
+
+        let incDecChart_my = new Chart(ctx_incDec_my, {
+            type: "bar",
+            data: {
+                labels: unique_date,
+                datasets: [{
+                    label: "확진자 수",
+                    data: inc_dec_seoul,
+                    backgroundColor: "rgba(100, 155, 255, 1)"
+                }]
+            }
+        });
+
+        //이용자의 요청에 따른 그래프 변경
+        function bar_gragh() {
+            incDecChart_my.destroy();
+            if (document.forms['barGragh'].area.value == "seoul") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_seoul,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_seoul,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_seoul,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "busan ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_busan,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_busan,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_busan,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "daegu ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_daegu,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_daegu,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_daegu,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "incheon ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_incheon,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_incheon,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_incheon,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "gwangju ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gwangju,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gwangju,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gwangju,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "daejeon ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_daejeon,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_daejeon,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_daejeon,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "ulsan ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_ulsan,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_ulsan,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_ulsan,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "sejong ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_sejong,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_sejong,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_sejong,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "gyeonggi ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gyeonggi,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gyeonggi,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gyeonggi,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "gangwon ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gangwon,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gangwon,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gangwon,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "chungbuk ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_chungbuk,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_chungbuk,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_chungbuk,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "chungnam ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_chungnam,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_chungnam,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_chungnam,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "jeolbuk ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_jeolbuk,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_jeolbuk,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_jeolbuk,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "jeolnam ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_jeolnam,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_jeolnam,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_jeolnam,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "gyeongbuk ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gyeongbuk,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gyeongbuk,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gyeongbuk,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "gyeongnam ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gyeongnam,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gyeongnam,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_gyeongnam,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "jeju ") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_jeju,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_jeju,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_jeju,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            } if (document.forms['barGragh'].area.value == "total") {
+                if (document.forms['barGragh'].term.value == 30) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: unique_date,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_total,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 15) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_15,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_total,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                } if (document.forms['barGragh'].term.value == 7) {
+                    incDecChart_my = new Chart(ctx_incDec_my, {
+                        type: "bar",
+                        data: {
+                            labels: date_7,
+                            datasets: [{
+                                label: "확진자 수",
+                                data: inc_dec_total,
+                                backgroundColor: "rgba(100, 155, 255, 1)"
+                            }]
+                        }
+                    });
+                }
+            }
+        }
+
+        let ctx_incDec = document.getElementById('incDec').getContext('2d');
+
+        let incDecChart = new Chart(ctx_incDec, {
+            type: "doughnut",
+            data: {
+                labels: gubun,
+                datasets: [{
+                    label: "전일 대비 증감 확진자 수",
+                    data: [
+                        inc_dec_seoul[inc_dec_seoul.length - 1],
+                        inc_dec_busan[inc_dec_busan.length - 1],
+                        inc_dec_daegu[inc_dec_daegu.length - 1],
+                        inc_dec_incheon[inc_dec_incheon.length - 1],
+                        inc_dec_gwangju[inc_dec_gwangju.length - 1],
+                        inc_dec_daejeon[inc_dec_daejeon.length - 1],
+                        inc_dec_ulsan[inc_dec_ulsan.length - 1],
+                        inc_dec_sejong[inc_dec_sejong.length - 1],
+                        inc_dec_gyeonggi[inc_dec_gyeonggi.length - 1],
+                        inc_dec_gangwon[inc_dec_gangwon.length - 1],
+                        inc_dec_chungbuk[inc_dec_chungbuk.length - 1],
+                        inc_dec_chungnam[inc_dec_chungnam.length - 1],
+                        inc_dec_jeolbuk[inc_dec_jeolbuk.length - 1],
+                        inc_dec_jeolnam[inc_dec_jeolnam.length - 1],
+                        inc_dec_gyeongbuk[inc_dec_gyeongbuk.length - 1],
+                        inc_dec_gyeongnam[inc_dec_gyeongnam.length - 1],
+                        inc_dec_jeju[inc_dec_jeju.length - 1],
+                        inc_dec_lazaretto[inc_dec_lazaretto.length - 1],
+                    ],
+                    backgroundColor: colorList
+                }]
+            }
+        });
+
+
+
+    </script>
+</body>
+
+</html>
